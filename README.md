@@ -79,6 +79,15 @@ py -3.12 -m venv ".venv"
 & ".venv/Scripts/python.exe" ".pio-core/packages/tool-esptoolpy/esptool.py" --chip esp32 merge_bin -o "build/WarmPager.factory.bin" --flash_mode dio --flash_freq 40m --flash_size 4MB 0x1000 ".pio/build/esp32dev/bootloader.bin" 0x8000 ".pio/build/esp32dev/partitions.bin" 0xe000 ".pio-core/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin" 0x10000 ".pio/build/esp32dev/firmware.bin"
 ```
 
+### 用 Arduino IDE 烧录（可选）
+
+也可以用 Arduino IDE 打开 `arduino/WarmPager/WarmPager.ino` 烧录，但有两个硬性要求：
+
+- ESP32 核心选 **2.0.17**：实测用 2.0.9 构建的固件在红米 Turbo 4 上配对卡死（一直显示"正在配对"后失败）；3.x 与 BLE Mouse 0.3.1 不兼容，编译报错。
+- 手动安装 **ESP32-BLE-Mouse 0.3.1**：该库不在库管理器索引里，从 GitHub Release 下载 ZIP 后用「草图 → 包含库 → 添加 .ZIP 库」安装。
+
+`arduino/WarmPager/` 是从 `src/main.cpp` 与 `include/` 生成的同步副本，仅供 Arduino IDE 烧录使用；改代码请改 `src/` 与 `include/` 并重新同步该目录。烧录时的按键操作与上方相同。
+
 ## 手机配对与实测
 
 1. 开发板正常上电后，在红米 Turbo 4 的系统蓝牙设置中搜索 `WarmPager` 并配对。
@@ -105,6 +114,7 @@ py -3.12 -m venv ".venv"
 ## 故障排查
 
 - 搜不到设备：先松开 BOOT，再短按 EN；检查供电是否稳定，以及是否已连接其他手机。改过设备名或 HID 配置时，手机端先取消旧配对再重新搜索。
+- 配对一直卡"正在配对"后失败：确认烧录的是 PlatformIO 构建的固件（Arduino IDE + esp32 core 2.0.9 构建实测配对失败，见"用 Arduino IDE 烧录"一节）；每次重试前先取消手机上的旧配对记录、彻底关闭蓝牙调试类 App，短按 EN 重启开发板后立刻搜索配对。
 - 能配对但不能翻页：检查手机是否启用了输入设备；先在可滚动页面验证滚轮输入，再回抖音视频页面测试，查看串口是否出现 `Next` / `Previous`。
 - 断开后找不到：固件会恢复广播；在手机蓝牙列表里点击重连，仍不行则取消配对、按 EN 后重新配对。自动重连表现以手机实测为准。
 - 插电脑没有串口：更换支持数据的线或 USB 口，检查设备管理器中 USB 转串口芯片的驱动。照片中的芯片看起来属于 CH340 系列，具体型号以芯片丝印为准。
@@ -124,7 +134,7 @@ g++ -std=c++11 -Wall -Wextra -Werror -pedantic -I "tests/stubs" -I "include" "te
 
 状态机 17 项测试覆盖单击、双击、消抖、长按、重连复位和计时溢出。主循环集成 6 项测试直接运行真实 `src/main.cpp`，用最小硬件桩验证滚轮方向、断连清空、恢复广播和重连期间的松手毛刺；这些测试不验证真实 BLE 协议栈。
 
-工程状态（2026-10-22）：23 项主机测试通过（187 项检查），ESP32 固件编译成功，已生成完整烧录文件。RAM 使用 39,124 / 327,680 字节，应用 Flash 使用 1,131,137 / 1,310,720 字节。本轮未烧录硬件；手机配对、实际翻页和电池续航尚未验证。
+工程状态（2026-10-31）：23 项主机测试通过（187 项检查），ESP32 固件编译成功，已生成完整烧录文件。RAM 使用 39,124 / 327,680 字节，应用 Flash 使用 1,131,137 / 1,310,720 字节。2026-10-31 实机验收通过：红米 Turbo 4 配对成功，单击切下一条、双击返回上一条，方向与步长均正确，多次连按无误翻漏翻；蓝牙断开重连与电池续航待继续观察。
 
 ## 参考
 
