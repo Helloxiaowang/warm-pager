@@ -65,7 +65,7 @@ py -3.12 -m venv ".venv"
 
 ### 已编译的完整固件
 
-本机已生成 `build/WarmPager.factory.bin`，包含启动程序、分区表和应用，按 ESP32 Dev Module 的 4 MB Flash、DIO、40 MHz 配置打包。无需重新编译时，可替换实际串口后烧录到地址 **0x0**（同样会覆盖板上原程序）：
+仓库已收录 `build/WarmPager.factory.bin`（实机验证过的完整固件），包含启动程序、分区表和应用，按 ESP32 Dev Module 的 4 MB Flash、DIO、40 MHz 配置打包。无需重新编译时，可替换实际串口后烧录到地址 **0x0**（同样会覆盖板上原程序）：
 
 ```powershell
 & ".venv/Scripts/python.exe" ".pio-core/packages/tool-esptoolpy/esptool.py" --chip esp32 --port "COM7" --baud 115200 write_flash 0x0 "build/WarmPager.factory.bin"
